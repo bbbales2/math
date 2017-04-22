@@ -9,6 +9,11 @@ namespace stan {
     template <typename T>
     struct fvar;
 
+    template <typename T>
+    struct ad_promotable<fvar<T>, fvar<T> > {
+      enum { value = true };
+    };
+
     template <typename V, typename T>
     struct ad_promotable<V, fvar<T> > {
       enum { value = ad_promotable<V, T>::value };
