@@ -58,16 +58,25 @@ namespace stan {
       explicit vari(double x):
         val_(x),
         adj_(0.0) {
+        // This is a hack to try to lessen the amount of segfaults that come
+        // up when using nested reverse mode autodiff inside a chain
+        // (this vector might get reallocated as vars are added to it)
+        ChainableStack::var_stack_.reserve(10000);
         ChainableStack::var_stack_.push_back(this);
       }
 
       vari(double x, bool stacked):
         val_(x),
         adj_(0.0) {
-        if (stacked)
+        if (stacked) {
+          // See comment for reserve in vari(double) constructor
+          ChainableStack::var_stack_.reserve(10000);
           ChainableStack::var_stack_.push_back(this);
-        else
+        } else {
+          // See comment for reserve in vari(double) constructor
+          ChainableStack::var_stack_.reserve(10000);
           ChainableStack::var_nochain_stack_.push_back(this);
+        }
       }
 
       /**

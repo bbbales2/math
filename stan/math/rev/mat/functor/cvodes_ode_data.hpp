@@ -81,12 +81,33 @@ namespace stan {
         return 0;
       }
 
+      static int ode_rhs_adj_sens(realtype t, N_Vector y,
+                                  N_Vector yB, N_Vector yBdot,
+                                  void *user_data) {
+        const ode_data* explicit_ode = static_cast<const ode_data*>(user_data);
+        const std::vector<double> y_vec(NV_DATA_S(y),
+                                        NV_DATA_S(y) + explicit_ode->N_);
+        explicit_ode->rhs_adj_sens(explicit_ode->y0_, explicit_ode->theta_,
+                                   t, y_vec, yB, yBdot);
+        return 0;
+      }
+
       static int dense_jacobian(long int N,  // NOLINT(runtime/int)
                                 realtype t, N_Vector y, N_Vector fy,
                                 DlsMat J, void *user_data,
                                 N_Vector tmp1, N_Vector tmp2, N_Vector tmp3) {
         const ode_data* explicit_ode = static_cast<const ode_data*>(user_data);
         return explicit_ode->dense_jacobian(NV_DATA_S(y), J, t);
+      }
+
+      static int dense_jacobian_adj(long int N,  // NOLINT(runtime/int)
+                                    realtype t, N_Vector y,
+                                    N_Vector yB, N_Vector fyB,
+                                    DlsMat J, void *user_data,
+                                    N_Vector tmp1, N_Vector tmp2,
+                                    N_Vector tmp3) {
+        const ode_data* explicit_ode = static_cast<const ode_data*>(user_data);
+        return explicit_ode->dense_jacobian_adj(NV_DATA_S(y), J, t);
       }
 
     private:
@@ -101,6 +122,26 @@ namespace stan {
         Eigen::VectorXd fy(N_);
         Eigen::Map<Eigen::MatrixXd> Jy_map(J->data, N_, N_);
         ode_system_.jacobian(t, y_vec, fy, Jy_map);
+        return 0;
+      }
+
+      /*
+       * Calculate the Jacobian of the RHS of the adjoint ODE (see rhs_adj_sens
+       * below for citation for how this is done)
+       *
+       * @param[in] y State of system
+       * @param[in] t Time
+       * @param[out] J CVode structure where output is to be stored
+       */
+      inline int dense_jacobian_adj(const double* y, DlsMat J, double t) const {
+        const std::vector<double> y_vec(y, y + N_);
+        Eigen::VectorXd dy_dt(N_ + M_);
+        Eigen::Map<Eigen::MatrixXd> jac(J->data, N_ + M_, N_ + M_);
+        Eigen::MatrixXd Jy(N_, N_);
+        Eigen::MatrixXd Jtheta(N_, M_);
+        ode_system_.jacobian(t, y_vec, dy_dt, Jy, Jtheta);
+        jac.block(0, 0, N_, N_) = -Jy.transpose();
+        jac.block(N_, 0, M_, N_) = -Jtheta.transpose();
         return 0;
       }
 
@@ -123,6 +164,54 @@ namespace stan {
           Map<VectorXd> ySdot_eig(NV_DATA_S(ySdot[param_var_ind_ + m]), N_);
           ySdot_eig = Jy * yS_eig + Jtheta.col(m);
         }
+      }
+
+      /*
+       * Calculate the adjoint sensitivity RHS. For the adjoint sensitivity
+       * analysis done here, look at "FATODE: A library for forward, adjoint,
+       * and tangent linear integration of ODEs" for equations
+       * (http://www.mcs.anl.gov/~hongzh/papers/SISC_FATODE_final.pdf eq. 2.4).
+       *
+       * @param[in] Jy Jacobian of ODE RHS with respect to state
+       * @param[in] Jtheta Jacobian of ODE RHS with respect to parameters
+       * @param[in] yB state of the adjoint ODE system
+       * @param[out] yBdot evaluation of adjoint ODE RHS
+       */
+      inline void rhs_adj_sens(const Eigen::MatrixXd& Jy,
+                               const Eigen::MatrixXd& Jtheta,
+                               N_Vector yB, N_Vector yBdot) const {
+        using Eigen::Map;
+        using Eigen::VectorXd;
+        Map<VectorXd> lambda(NV_DATA_S(yB), N_);
+
+        Map<VectorXd> lambda_dot(NV_DATA_S(yBdot), N_);
+        Map<VectorXd> mu_dot(NV_DATA_S(yBdot) + N_, M_);
+
+        lambda_dot = -(lambda.transpose() * Jy).transpose();
+        mu_dot = -(lambda.transpose() * Jtheta).transpose();
+      }
+
+      /*
+       * Calculate the adjoint sensitivity RHS for varying initial conditions
+       * and parameters
+       *
+       * @param[in] initial var vector
+       * @param[in] param var vector
+       * @param[in] t time
+       * @param[in] y state of the base ODE system
+       * @param[in] yB state of the adjoint ODE system
+       * @param[out] yBdot evaluation of adjoint ODE RHS
+       */
+      template<typename T1, typename T2>
+      void rhs_adj_sens(const std::vector<T1>& initial,
+                        const std::vector<T2>& param,
+                        double t, const std::vector<double>& y,
+                        N_Vector yB, N_Vector yBdot) const {
+        Eigen::VectorXd dy_dt(N_);
+        Eigen::MatrixXd Jy(N_, N_);
+        Eigen::MatrixXd Jtheta(N_, M_);
+        ode_system_.jacobian(t, y, dy_dt, Jy, Jtheta);
+        rhs_adj_sens(Jy, Jtheta, yB, yBdot);
       }
 
       /**
