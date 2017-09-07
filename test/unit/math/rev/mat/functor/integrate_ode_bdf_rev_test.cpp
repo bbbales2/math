@@ -25,11 +25,11 @@ void sho_value_test(F harm_osc,
                                     ts, promote_scalar<T_theta>(theta), x,
                                     x_int);
 
-  EXPECT_NEAR(0.995029, ode_res_vd[0][0].val(), 1e-5);
-  EXPECT_NEAR(-0.0990884, ode_res_vd[0][1].val(), 1e-5);
+  EXPECT_NEAR(0.995029, ode_res_vd.front()[0].val(), 1e-5);
+  EXPECT_NEAR(-0.0990884, ode_res_vd.front()[1].val(), 1e-5);
 
-  EXPECT_NEAR(-0.421907, ode_res_vd[99][0].val(), 1e-5);
-  EXPECT_NEAR(0.246407, ode_res_vd[99][1].val(), 1e-5);
+  EXPECT_NEAR(-0.421907, ode_res_vd.back()[0].val(), 1e-5);
+  EXPECT_NEAR(0.246407, ode_res_vd.back()[1].val(), 1e-5);
 }
 
 void sho_finite_diff_test(double t0) {
@@ -44,8 +44,10 @@ void sho_finite_diff_test(double t0) {
   y0.push_back(0.0);
 
   std::vector<double> ts;
-  for (int i = 0; i < 100; i++)
+  for (int i = 0; i < 9; i++)
     ts.push_back(t0 + 0.1 * (i + 1));
+
+  ts.push_back(t0 + 10.0);
 
   std::vector<double> x;
   std::vector<int> x_int;
@@ -73,8 +75,9 @@ void sho_data_finite_diff_test(double t0) {
 
 
   std::vector<double> ts;
-  for (int i = 0; i < 100; i++)
+  for (int i = 0; i < 9; i++)
     ts.push_back(t0 + 0.1 * (i + 1));
+  ts.push_back(t0 + 10.0);
 
   std::vector<double> x(3,1);
   std::vector<int> x_int(2,0);
@@ -117,6 +120,8 @@ TEST(StanAgradRevOde_integrate_ode, harmonic_oscillator_finite_diff) {
   sho_finite_diff_test(1.0);
   sho_finite_diff_test(-1.0);
 
+  // Comment out these three tests and things will pass
+  // If they're still in here, we get segfaults
   sho_data_finite_diff_test(0);
   sho_data_finite_diff_test(1.0);
   sho_data_finite_diff_test(-1.0);
@@ -135,8 +140,9 @@ TEST(StanAgradRevOde_integrate_ode, harmonic_oscillator_error) {
 
   double t0 = 0;
   std::vector<double> ts;
-  for (int i = 0; i < 100; i++)
+  for (int i = 0; i < 9; i++)
     ts.push_back(t0 + 0.1 * (i + 1));
+  ts.push_back(t0 + 10.0);
 
   std::vector<double> x(3,1);
   std::vector<int> x_int(2,0);
@@ -175,8 +181,9 @@ TEST(StanAgradRevOde_integrate_ode, lorenz_finite_diff) {
   std::vector<double> x;
   std::vector<int> x_int;
 
-  for (int i = 0; i < 100; i++)
-    ts.push_back(0.1*(i+1));
+  for (int i = 0; i < 9; i++)
+    ts.push_back(0.1 * (i + 1));
+  ts.push_back(10.0);
 
   test_ode_cvode(lorenz, t0, ts, y0, theta, x, x_int, 1e-8, 1e-1);
 }
