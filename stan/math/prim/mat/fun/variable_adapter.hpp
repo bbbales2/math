@@ -39,6 +39,12 @@ class variable_adapter {
   }
 
   template <typename... Pargs>
+  size_t count_T_impl(size_t count, const std::complex<T>& x,
+                      const Pargs&... args) {
+    return count_T_impl(count + 2, args...);
+  }
+
+  template <typename... Pargs>
   size_t count_T_impl(size_t count, const T& x, const Pargs&... args) {
     return count_T_impl(count + 1, args...);
   }
@@ -107,6 +113,22 @@ class variable_adapter {
       return arg[i];
     else
       return get(i - arg.size(), args...);
+  }
+
+  /**
+   * Return the ith element of arg if i is less than 2.
+   * Otherwise return the (i - 2)th element of the
+   * remaining args
+   *
+   * @tparam Pargs Types of the rest of the input arguments to process
+   * @return Reference to ith T in args_
+   */
+  template <typename... Pargs>
+  T& get(size_t i, std::complex<T>& arg, Pargs&... args) {
+    if (i < 2)
+      return reinterpret_cast<T(&)[2]>(arg)[i];
+    else
+      return get(i - 2, args...);
   }
 
   /**

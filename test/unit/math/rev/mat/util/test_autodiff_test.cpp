@@ -80,6 +80,17 @@ TEST(AgradRevMatrix, test_autodiff_scalar) {
 }
 
 /**
+ * Check that std::complex inputs can be tested
+ */
+TEST(AgradRevMatrix, test_autodiff_std_complex) {
+  auto func = [](auto a) { return a; };
+
+  std::complex<double> v1(-1.0, -2.0);
+
+  EXPECT_NO_THROW(stan::math::test::test_autodiff(func, 1e-9, 1e-9, v1));
+}
+
+/**
  * Check that std::vector inputs can be tested
  */
 TEST(AgradRevMatrix, test_autodiff_std_vector) {
@@ -208,6 +219,30 @@ TEST(AgradRevMatrix, test_autodiff_scalar_bad) {
       "does not match the value from the reverse mode call");
 }
 
+struct bad_std_complex_func {
+  template <typename T>
+  T operator()(const T& t) {
+    return t;
+  }
+
+  std::complex<double> operator()(const std::complex<double>& t) {
+    std::complex<double> o(t);
+    o.real(o.real() + 1.0);
+    return o;
+  }
+};
+
+/**
+ * Check var/prim output values equal for std::complexs
+ */
+TEST(AgradRevMatrix, test_autodiff_std_complex_bad) {
+  std::complex<double> v1(1.0, 2.0);
+  EXPECT_THROW_MSG(
+      stan::math::test::test_autodiff(bad_std_complex_func{}, 1e-9, 1e-9, v1),
+      std::runtime_error,
+      "does not match the value from the reverse mode call");
+}
+
 struct bad_std_vector_func {
   template <typename T>
   T operator()(const T& t) {
@@ -315,6 +350,25 @@ struct bad_autodiff_scalar_func {
 TEST(AgradRevMatrix, test_autodiff_scalar_bad_autodiff) {
   EXPECT_THROW_MSG(stan::math::test::test_autodiff(bad_autodiff_scalar_func{},
                                                    1e-9, 1e-9, 1.0),
+                   std::runtime_error,
+                   "Jacobian element of the finite difference approximation");
+}
+
+struct bad_autodiff_std_complex_func {
+  template <typename T>
+  T operator()(const T& t) {
+    return stan::math::to_var(stan::math::value_of(t));
+  }
+
+  std::complex<double> operator()(const std::complex<double>& t) { return t; }
+};
+
+/**
+ * Catch error in var autodiff for std::vectors
+ */
+TEST(AgradRevMatrix, test_autodiff_std_complex_bad_autodiff) {
+  std::complex<double> v1(1.0, 2.0);
+  EXPECT_THROW_MSG(stan::math::test::test_autodiff(bad_autodiff_std_complex_func{}, 1e-9, 1e-9, v1),
                    std::runtime_error,
                    "Jacobian element of the finite difference approximation");
 }

@@ -10,6 +10,13 @@ TEST(MathFunctions, value_of) {
   EXPECT_FLOAT_EQ(5.0, value_of(5));
 }
 
+TEST(MathFunctions, value_of_complex) {
+  using stan::math::value_of;
+  std::complex<double> x(1.0, 2.0);
+  EXPECT_FLOAT_EQ(1.0, value_of(x).real());
+  EXPECT_FLOAT_EQ(2.0, value_of(x).imag());
+}
+
 TEST(MathFunctions, value_of_nan) {
   double nan = std::numeric_limits<double>::quiet_NaN();
 

@@ -11,3 +11,12 @@ TEST(AgradRev, value_of) {
   EXPECT_FLOAT_EQ(5.0, value_of(5.0));
   EXPECT_FLOAT_EQ(5.0, value_of(5));
 }
+
+TEST(AgradRev, value_of_complex) {
+  using stan::math::value_of;
+  using stan::math::var;
+
+  std::complex<var> x(1.0, 2.0);
+  EXPECT_FLOAT_EQ(1.0, value_of(x).real());
+  EXPECT_FLOAT_EQ(2.0, value_of(x).imag());
+}

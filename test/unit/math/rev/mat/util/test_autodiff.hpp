@@ -82,6 +82,13 @@ std::string type_as_string(const std::vector<T>&) {
   return s.str();
 }
 
+template <typename T>
+std::string type_as_string(const std::complex<T>&) {
+  std::stringstream s;
+  s << "std::complex<" << type_as_string(T()) << ">";
+  return s.str();
+}
+
 /**
  * Checks that f called with args and f called with args cast to
  * non-autodiff types either both throw exceptions or both do not.
