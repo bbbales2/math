@@ -36,6 +36,13 @@ std::tuple<std::vector<T> > promote_element_double_to(
 }
 
 template <typename T>
+std::tuple<std::complex<T> > promote_element_double_to(
+    const std::complex<double>& input) {
+  std::complex<T> promoted_input(input.real(), input.imag());
+  return std::make_tuple(promoted_input);
+}
+
+template <typename T>
 std::tuple<T> promote_element_double_to(const double& input) {
   return std::make_tuple(T(input));
 }

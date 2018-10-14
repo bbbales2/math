@@ -31,6 +31,45 @@ TEST(MathFunctions, promote_double_to_mix) {
   EXPECT_FLOAT_EQ(static_cast<float>(1.0), std::get<0>(y2));
 }
 
+TEST(MathFunctions, promote_double_to_std_complex_float) {
+  std::complex<float> x(1, 2);
+  auto y = stan::math::promote_double_to<double>(std::make_tuple(x));
+
+  EXPECT_EQ(0, std::tuple_size<decltype(y)>::value);
+  EXPECT_TRUE((std::is_same<std::tuple<>, decltype(y)>::value));
+}
+
+TEST(MathFunctions, promote_double_to_std_complex_double) {
+  std::complex<double> x(1.0, 2.0);
+  auto y = stan::math::promote_double_to<float>(std::make_tuple(x));
+
+  EXPECT_TRUE(
+      (std::is_same<std::tuple<std::complex<float> >, decltype(y)>::value));
+  EXPECT_EQ(1, std::tuple_size<decltype(y)>::value);
+  EXPECT_FLOAT_EQ(static_cast<float>(1.0), std::get<0>(y).real());
+  EXPECT_FLOAT_EQ(static_cast<float>(2.0), std::get<0>(y).imag());
+}
+
+TEST(MathFunctions, promote_double_to_std_complex_mix) {
+  std::complex<float> xi(1, 2);
+  std::complex<double> xd1(3.0, 4.0);
+  std::complex<double> xd2(5.0, 6.0);
+  auto y1 = stan::math::promote_double_to<float>(std::make_tuple(xd1, xi, xd2));
+  auto y2 = stan::math::promote_double_to<float>(std::make_tuple(xd1, xi));
+  EXPECT_TRUE((std::is_same<std::tuple<std::complex<float>, std::complex<float> >,
+                            decltype(y1)>::value));
+  EXPECT_TRUE(
+      (std::is_same<std::tuple<std::complex<float> >, decltype(y2)>::value));
+  EXPECT_EQ(2, std::tuple_size<decltype(y1)>::value);
+  EXPECT_EQ(1, std::tuple_size<decltype(y2)>::value);
+  EXPECT_FLOAT_EQ(static_cast<float>(3.0), std::get<0>(y1).real());
+  EXPECT_FLOAT_EQ(static_cast<float>(4.0), std::get<0>(y1).imag());
+  EXPECT_FLOAT_EQ(static_cast<float>(5.0), std::get<1>(y1).real());
+  EXPECT_FLOAT_EQ(static_cast<float>(6.0), std::get<1>(y1).imag());
+  EXPECT_FLOAT_EQ(static_cast<float>(3.0), std::get<0>(y2).real());
+  EXPECT_FLOAT_EQ(static_cast<float>(4.0), std::get<0>(y2).imag());
+}
+
 TEST(MathFunctions, promote_double_to_std_vector_int) {
   std::vector<int> x(3);
   auto y = stan::math::promote_double_to<double>(std::make_tuple(x));

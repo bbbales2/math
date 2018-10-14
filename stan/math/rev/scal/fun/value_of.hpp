@@ -21,6 +21,16 @@ namespace math {
  */
 inline double value_of(const var& v) { return v.vi_->val_; }
 
+/**
+ * Return the values of the specified std::complex<var> variable.
+ *
+ * @param v Variable.
+ * @return Value of variable.
+ */
+inline std::complex<double> value_of(const std::complex<var>& v) {
+  return std::complex<double>(value_of(v.real()), value_of(v.imag()));
+}
+
 }  // namespace math
 }  // namespace stan
 #endif

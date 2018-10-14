@@ -51,6 +51,21 @@ inline double value_of<double>(double x) {
  * @param x value
  * @return input value
  */
+inline std::complex<double> value_of(std::complex<double> x) {
+  return x;
+}
+
+/**
+ * Return the specified argument.
+ *
+ * <p>See <code>value_of(T)</code> for a polymorphic
+ * implementation using static casts.
+ *
+ * <p>This inline pass-through no-op should be compiled away.
+ *
+ * @param x value
+ * @return input value
+ */
 inline int value_of(int x) { return x; }
 
 }  // namespace math
