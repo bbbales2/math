@@ -5,6 +5,105 @@
 #include <test/unit/math/rev/mat/util/test_autodiff.hpp>
 #include <vector>
 
+TEST(AgradRevMatrix, complex_constructor) {
+  auto func = [](auto b) {
+    std::complex<stan::math::var> a(b);
+    return a;
+  };
+
+  std::complex<double> c1(3.0, 4.0);
+  double d = 3.0;
+
+  stan::math::test::test_autodiff(func, 1e-6, 1e-6, d);
+  stan::math::test::test_autodiff(func, 1e-6, 1e-6, c1);
+}
+
+TEST(AgradRevMatrix, complex_assignment) {
+  auto func = [](auto b) {
+    std::complex<stan::math::var> a(1.0, 2.0);
+    a = b;
+    return a;
+  };
+
+  std::complex<double> c1(3.0, 4.0);
+  double d = 3.0;
+
+  stan::math::test::test_autodiff(func, 1e-6, 1e-6, d);
+  stan::math::test::test_autodiff(func, 1e-6, 1e-6, c1);
+}
+
+TEST(AgradRevMatrix, complex_member_real) {
+  auto func = [](auto a) { return a.real(); };
+
+  std::complex<double> c(1.0, 2.0);
+
+  stan::math::test::test_autodiff(func, 1e-6, 1e-6, c);
+}
+
+TEST(AgradRevMatrix, complex_member_imag) {
+  auto func = [](auto a) { return a.imag(); };
+
+  std::complex<double> c(1.0, 2.0);
+
+  stan::math::test::test_autodiff(func, 1e-6, 1e-6, c);
+}
+
+TEST(AgradRevMatrix, complex_member_addition) {
+  auto func = [](auto b) {
+    std::complex<stan::math::var> a(1.0, 2.0);
+    a += b;
+    return a;
+  };
+
+  std::complex<double> c1(3.0, 4.0);
+  double d = 3.0;
+
+  stan::math::test::test_autodiff(func, 1e-6, 1e-6, d);
+  stan::math::test::test_autodiff(func, 1e-6, 1e-6, c1);
+}
+
+TEST(AgradRevMatrix, complex_member_subtraction) {
+  auto func = [](auto b) {
+    std::complex<stan::math::var> a(1.0, 2.0);
+    a -= b;
+    return a;
+  };
+
+  std::complex<double> c1(3.0, 4.0);
+  double d = 3.0;
+
+  stan::math::test::test_autodiff(func, 1e-6, 1e-6, d);
+  stan::math::test::test_autodiff(func, 1e-6, 1e-6, c1);
+}
+
+TEST(AgradRevMatrix, complex_member_multiplication) {
+  auto func = [](auto b) {
+    std::complex<stan::math::var> a(1.0, 2.0);
+    a *= b;
+    return a;
+  };
+
+  std::complex<double> c1(3.0, 4.0);
+  double d = 3.0;
+
+  stan::math::test::test_autodiff(func, 1e-6, 1e-6, d);
+  stan::math::test::test_autodiff(func, 1e-6, 1e-6, c1);
+}
+
+TEST(AgradRevMatrix, complex_member_division) {
+  auto func = [](auto b) {
+    std::complex<stan::math::var> a(1.0, 2.0);
+    a /= b;
+    return a;
+  };
+
+  std::complex<double> c1(3.0, 4.0);
+  double d = 3.0;
+
+  stan::math::test::test_autodiff(func, 1e-6, 1e-6, d);
+  stan::math::test::test_autodiff(func, 1e-6, 1e-6, c1);
+}
+
 TEST(AgradRevMatrix, complex_addition) {
   auto func = [](auto a, auto b) { return a + b; };
 
