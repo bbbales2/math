@@ -22,12 +22,32 @@ namespace math {
 inline double value_of(const var& v) { return v.vi_->val_; }
 
 /**
+ * Return the values of the specified zeroing<var> (same as var).
+ *
+ * @param v Variable.
+ * @return Value of variable.
+ */
+inline double value_of(const zeroing<var>& v) {
+  return v.vi_->val_;
+}
+
+/**
  * Return the values of the specified std::complex<var> variable.
  *
  * @param v Variable.
  * @return Value of variable.
  */
 inline std::complex<double> value_of(const std::complex<var>& v) {
+  return std::complex<double>(value_of(v.real()), value_of(v.imag()));
+}
+
+/**
+ * Return the values of the specified std::complex<zeroing<var> > variable.
+ *
+ * @param v Variable.
+ * @return Value of variable.
+ */
+inline std::complex<double> value_of(const std::complex<zeroing<var> >& v) {
   return std::complex<double>(value_of(v.real()), value_of(v.imag()));
 }
 

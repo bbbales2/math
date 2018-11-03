@@ -52,7 +52,7 @@ class var {
    * @return <code>true</code> if this variable does not yet have
    * a defined variable.
    */
-  bool is_uninitialized() { return (vi_ == static_cast<vari*>(nullptr)); }
+  bool is_uninitialized() const { return (vi_ == static_cast<vari*>(nullptr)); }
 
   /**
    * Construct a variable for later assignment.

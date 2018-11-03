@@ -155,11 +155,11 @@ void test_values(F f, double relative_tolerance, double absolute_tolerance,
                  const Targs&... args) {
   auto fd = [&f](auto... args) { return f(value_of(args)...); };
   auto input = make_variable_adapter<var>(args...);
-  auto output = make_variable_adapter<var>(apply(f, input.get_args()));
+  auto output = make_variable_adapter<double>(value_of(apply(f, input.get_args())));
 
   if (output.size() > 0) {
     auto output_double
-        = make_variable_adapter<double>(apply(fd, input.get_args()));
+      = make_variable_adapter<double>(value_of(apply(fd, input.get_args())));
 
     if (output_double.size() != output.size()) {
       std::cout << "The non-autodiff output has " << output_double.size()
@@ -168,13 +168,13 @@ void test_values(F f, double relative_tolerance, double absolute_tolerance,
     }
 
     for (size_t i = 0; i < output.size(); ++i) {
-      if (!is_near(output_double(i), value_of(output(i)), relative_tolerance,
+      if (!is_near(output_double(i), output(i), relative_tolerance,
                    absolute_tolerance)) {
         std::stringstream s;
         s << "The " << i << "th output element from the non-autodiff call ("
           << output_double(i)
           << ") does not match the value from the reverse mode call ("
-          << value_of(output(i)) << ")" << std::endl;
+          << output(i) << ")" << std::endl;
         throw std::runtime_error(s.str());
       }
     }
@@ -210,10 +210,10 @@ void test_gradients(F f, double dx, double relative_tolerance,
       auto fd_input = input;
       fd_input(j) += dx;
       auto output1
-          = make_variable_adapter<double>(apply(fd, fd_input.get_args()));
+        = make_variable_adapter<double>(value_of(apply(fd, fd_input.get_args())));
       fd_input(j) -= 2 * dx;
       auto output2
-          = make_variable_adapter<double>(apply(fd, fd_input.get_args()));
+        = make_variable_adapter<double>(value_of(apply(fd, fd_input.get_args())));
       for (size_t i = 0; i < output.size(); ++i) {
         fd_jac(i, j) = (output1(i) - output2(i)) / (2.0 * dx);
       }
